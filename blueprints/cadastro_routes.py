@@ -1,14 +1,12 @@
 from flask import Blueprint, request, jsonify, render_template, redirect, url_for
-from config import mysql
+from config import mysql, db
 
 cadastro_blueprint = Blueprint('cadastro', __name__)
-
-@cadastro_blueprint.route('/ler-cadastro', methods=['GET'])
 
 @cadastro_blueprint.route('/criar-usuario', methods=['POST'])
 def criar_usuario():
     if request.method == 'POST':
-        usuario = request.form
+        dados = request.form
 
         query = f"""
             INSERT INTO USUARIOS(
@@ -23,20 +21,34 @@ def criar_usuario():
                 TIPO
             )
             VALUES(
-                '{usuario['nome']}',
-                '{usuario['email']}',
-                '{usuario['senha']}',
-                {usuario['telefone']},
-                '{usuario['genero']}',
-                '{usuario['data_nasc']}',
-                '{usuario['curso_cargo']}',
-                '{usuario['turno']}',
+                '{dados['nome']}',
+                '{dados['email']}',
+                '{dados['senha']}',
+                {dados['telefone']},
+                '{dados['genero']}',
+                '{dados['data_nasc']}',
+                '{dados['curso_cargo']}',
+                '{dados['turno']}',
                 1
             );
         """
 
-        cur = mysql.connection.cursor()
-        cur.execute(query)
-        mysql.connection.commit()
+        cursor = db.cursor(dictionary=True)
+        cursor.execute(f'''
+            SELECT *
+            FROM USUARIOS
+            WHERE EMAIL = '{dados['email']}';
+        ''')
+        usuario = cursor.fetchone()
 
-        return redirect(url_for('login.login'))
+        if usuario:
+            return redirect(url_for('login.cadastro'))
+        
+        else:
+            cur = mysql.connection.cursor()
+            cur.execute(query)
+            mysql.connection.commit()
+
+            return redirect(url_for('login.login'))
+    
+    return render_template('cadastro.html')

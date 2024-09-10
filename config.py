@@ -1,7 +1,16 @@
 from flask import Flask
 from flask_mysqldb import MySQL
+import mysql.connector
 
 app = Flask(__name__)
+app.secret_key = 'doces'
+
+db = mysql.connector.connect(
+    host='localhost',
+    user='root',
+    password='root',
+    database='DOCE_IMPACTO'
+)
 
 app.config['HOST'] = '0.0.0.0'
 app.config['PORT'] = 8000
